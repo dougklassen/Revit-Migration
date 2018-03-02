@@ -31,15 +31,17 @@ namespace DougKlassen.Revit.Migration.StartUp
             BitmapImage largeIcon = GetEmbeddedImageResource("iconLarge.png");
             BitmapImage smallIcon = GetEmbeddedImageResource("iconSmall.png");
 
-            PushButtonData newCommandPushButtonData = new PushButtonData(
+            PushButtonData migrateFamiliesCommandPushButtonData = new PushButtonData(
                  "MigrateFamiliesButton", //name of the button
-                 "MigrateFamiliesCommand", //text on the button
+                 "Migrate Families", //text on the button
                  FileLocations.AddInDirectory + FileLocations.AssemblyName + ".dll",
-                 "DougKlassen.Revit.Migration.Commands.NewCommand");
-            newCommandPushButtonData.LargeImage = largeIcon;
+                 "DougKlassen.Revit.Migration.Commands.MigrateFamiliesCommand");
+            migrateFamiliesCommandPushButtonData.LargeImage = largeIcon;
+            migrateFamiliesCommandPushButtonData.AvailabilityClassName =
+                "DougKlassen.Revit.Migration.Commands.MigrateFamiliesCommandAvailability";
 
-            RibbonPanel newAddInRibbonPanel = application.CreateRibbonPanel("NewAddIn");
-            newAddInRibbonPanel.AddItem(newCommandPushButtonData);
+            RibbonPanel newAddInRibbonPanel = application.CreateRibbonPanel("Migration");
+            newAddInRibbonPanel.AddItem(migrateFamiliesCommandPushButtonData);            
 
             return Result.Succeeded;
         }
