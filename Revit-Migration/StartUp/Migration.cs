@@ -6,7 +6,7 @@ using System.Reflection;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace Revit_Migration.StartUp
+namespace DougKlassen.Revit.Migration.StartUp
 {
     public static class FileLocations
     {
@@ -14,8 +14,8 @@ namespace Revit_Migration.StartUp
         public static String AddInDirectory;
         //AssemblyName is initialized at runtime
         public static String AssemblyName;
-        public static readonly String imperialTemplateDirectory = @"X:\CAD\_REVIT 2016\Family Templates\English_I\";
-        public static readonly String ResourceNameSpace = @"Revit_Migration.Resources";
+        public static readonly String imperialTemplateDirectory = @"P:\CAD\_REVIT 2018\Family Templates\English_I\";
+        public static readonly String ResourceNameSpace = @"DougKlassen.Revit.Migration.Resources";
     }
 
     public class StartUpApp : IExternalApplication
@@ -32,10 +32,10 @@ namespace Revit_Migration.StartUp
             BitmapImage smallIcon = GetEmbeddedImageResource("iconSmall.png");
 
             PushButtonData newCommandPushButtonData = new PushButtonData(
-                 "NewCommandButton", //name of the button
-                 "NewCommand", //text on the button
+                 "MigrateFamiliesButton", //name of the button
+                 "MigrateFamiliesCommand", //text on the button
                  FileLocations.AddInDirectory + FileLocations.AssemblyName + ".dll",
-                 "Revit_Migration.Commands.NewCommand");
+                 "DougKlassen.Revit.Migration.Commands.NewCommand");
             newCommandPushButtonData.LargeImage = largeIcon;
 
             RibbonPanel newAddInRibbonPanel = application.CreateRibbonPanel("NewAddIn");

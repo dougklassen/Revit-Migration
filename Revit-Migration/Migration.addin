@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <RevitAddIns>
   <AddIn Type="Command">
-    <Assembly>"C:\ProgramData\AutoDesk\Revit\AddIns\2018\NewAddIn\NewAddIn.dll"</Assembly>
-    <AddInId>2b81f0b0-5cbc-43f4-ac40-be70e37b461f</AddInId>
-    <FullClassName>Revit_Migration.Commands.NewCommand</FullClassName>
+    <Assembly>"C:\ProgramData\AutoDesk\Revit\AddIns\2018\Migration\Migration.dll"</Assembly>
+    <AddInId>ab0b3d2f-17b5-4fef-91a8-a893bb48e295</AddInId>
+    <FullClassName>DougKlassen.Revit.Migration.Commands.NewCommand</FullClassName>
     <Text>New Command</Text>
     <VendorId>TSRA</VendorId>
     <VendorDescription>Doug Klassen</VendorDescription>
   </AddIn>
   <AddIn Type="Application">
-    <Name>NewAddInPanel</Name>
+    <Name>MigrationPanel</Name>
     <Assembly>C:\ProgramData\AutoDesk\Revit\AddIns\2018\NewAddIn\NewAddIn.dll</Assembly>
-    <AddInId>f78e5539-0065-4bbd-8cf1-be086c1b6d1a</AddInId>
-    <FullClassName>Revit_Migration.StartUp.StartUpApp</FullClassName>
+    <AddInId>366fdffd-e4bb-4ae5-b909-c639c65dc02b</AddInId>
+    <FullClassName>DougKlassen.Revit.Migration.StartUp.StartUpApp</FullClassName>
     <VendorId>TSRA</VendorId>
     <VendorDescription>Doug Klassen</VendorDescription>
   </AddIn>

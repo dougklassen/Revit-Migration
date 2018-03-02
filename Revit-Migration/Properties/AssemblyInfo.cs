@@ -6,12 +6,12 @@ using System.Resources;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NewAddIn")]
-[assembly: AssemblyDescription("A Revit 2016 Add-In")]
+[assembly: AssemblyTitle("Migration")]
+[assembly: AssemblyDescription("Migrate files and projects to Revit 2018")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using System.Resources;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("59acf2a6-14a7-46a4-8bff-5eb42ae3282f")]
+[assembly: Guid("61b4f7c3-6a5a-40a8-8abd-94b0d8b7a143")]
 
 // Version information for an assembly consists of the following four values:
 //

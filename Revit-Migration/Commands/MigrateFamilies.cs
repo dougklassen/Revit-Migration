@@ -5,10 +5,10 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace Revit_Migration.Commands
+namespace DougKlassen.Revit.Migration.Commands
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
-    public class NewCommand : IExternalCommand
+    public class MigrateFamilies : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
