@@ -6,7 +6,7 @@ using System.Reflection;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace DougKlassen.Revit.Migration.StartUp
+namespace DougKlassen.Revit.Migration
 {
     public static class FileLocations
     {
@@ -17,7 +17,10 @@ namespace DougKlassen.Revit.Migration.StartUp
         public static readonly String imperialTemplateDirectory = @"P:\CAD\_REVIT 2018\Family Templates\English_I\";
         public static readonly String ResourceNameSpace = @"DougKlassen.Revit.Migration.Resources";
     }
+}
 
+namespace DougKlassen.Revit.Migration.StartUp
+{
     public class StartUpApp : IExternalApplication
     {
         Result IExternalApplication.OnStartup(UIControlledApplication application)
