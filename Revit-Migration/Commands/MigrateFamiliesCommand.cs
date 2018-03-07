@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -83,17 +84,25 @@ namespace DougKlassen.Revit.Migration.Commands
         private List<RevitFamily> GetEligibleFamiles(String sourceDirectory)
         {
             List<RevitFamily> selectedFamiles = new List<RevitFamily>();
+            Regex exclusionRegex = new Regex(@"\.[\d]{2,4}\.rfa", RegexOptions.IgnoreCase);            
 
             List<String> filePaths = Directory.EnumerateFiles(sourceDirectory, "*.rfa", SearchOption.AllDirectories).ToList();
             foreach (var path in filePaths)
             {
-                selectedFamiles.Add(new RevitFamily(path));
+                String fileName = Path.GetFileName(path);
+                if (!exclusionRegex.IsMatch(fileName))
+                {
+                    selectedFamiles.Add(new RevitFamily(path));
+                }
             }
 
             return selectedFamiles;
         }
     }
 
+    /// <summary>
+    /// Class used by Revit to determine when the command is active
+    /// </summary>
     public class MigrateFamiliesCommandAvailability : IExternalCommandAvailability
     {
         public bool IsCommandAvailable(UIApplication applicationData, CategorySet selectedCategories)
