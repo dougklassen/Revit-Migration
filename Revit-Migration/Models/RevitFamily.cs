@@ -39,7 +39,7 @@ namespace DougKlassen.Revit.Migration.Models
         /// <param name="path">The path to the .rfa file containing the family</param>
         public RevitFamily(String path)
         {
-            SourceFilePath = Path.GetDirectoryName(path);
+            SourceFilePath = Path.GetDirectoryName(path) + "\\";
             SourceFileName = Path.GetFileName(path);
         }
     }

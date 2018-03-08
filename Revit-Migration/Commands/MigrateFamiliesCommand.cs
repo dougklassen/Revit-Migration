@@ -7,6 +7,7 @@ using System.Windows.Forms;
 
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.ApplicationServices;
 
 using DougKlassen.Revit.Migration.Models;
 
@@ -16,6 +17,7 @@ namespace DougKlassen.Revit.Migration.Commands
     public class MigrateFamiliesCommand : IExternalCommand
     {
         private MigrationLog log = MigrationLog.Instance;
+        private String logFilePath = FileLocations.AddInDirectory + String.Format("{0}.log.txt", DateTime.Now.ToString("yyyyddMM.Hmm"));
         private String sourceDirectory, destinationDirectory;
         private List<RevitFamily> familiesToMigrate;
 
@@ -64,14 +66,29 @@ namespace DougKlassen.Revit.Migration.Commands
             }
             log.AppendLine("Output directory selected: {0}", destinationDirectory);
 
+            //Open each family and save in the current version of revit
+            var app = commandData.Application.Application;
+            var openOpts = new OpenOptions();
+            openOpts.Audit = true;
             familiesToMigrate = GetEligibleFamiles(sourceDirectory);
             log.AppendLine("{0} elligible families found", familiesToMigrate.Count());
             foreach (var family in familiesToMigrate)
             {
-                log.AppendLine("  {0}", family.SourceFileName);
+                try
+                {
+                    ModelPath modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(family.SourceFileCompletePath);
+                    log.AppendLine(" Processing {0}", ModelPathUtils.ConvertModelPathToUserVisiblePath(modelPath));
+                    Document dbDoc = app.OpenDocumentFile(modelPath, openOpts);
+                    dbDoc.Close(false);
+                }
+                catch (Exception e)
+                {
+                    log.LogException(e);
+                    File.WriteAllText(logFilePath, log.Text);
+                    return Result.Failed;
+                }
             }
 
-            String logFilePath = FileLocations.AddInDirectory + String.Format("{0}.log.txt", DateTime.Now.ToString("yyyyddMM.Hmm"));
             File.WriteAllText(logFilePath, log.Text);
             return Result.Succeeded;
         }
