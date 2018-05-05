@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\MigrateFamiliesCommand.cs" />
-    <Compile Include="Models\RevitFamily.cs" />
+    <Compile Include="Commands\MigrateFamiliesErrorHandler.cs" />
     <Compile Include="Models\MigrationLog.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

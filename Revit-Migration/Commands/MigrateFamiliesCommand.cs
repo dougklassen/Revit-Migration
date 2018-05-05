@@ -17,9 +17,12 @@ namespace DougKlassen.Revit.Migration.Commands
     public class MigrateFamiliesCommand : IExternalCommand
     {
         private MigrationLog log = MigrationLog.Instance;
-        private String logFilePath = FileLocations.AddInDirectory + String.Format("{0}.log.txt", DateTime.Now.ToString("yyyyddMM.Hmm"));
+        private String logFilePath = FileLocations.AddInDirectory + String.Format("{0}.log.txt", DateTime.Now.ToString("yyyyMMdd.Hmm"));
         private String sourceDirectory, destinationDirectory;
-        private List<RevitFamily> familiesToMigrate;
+        /// <summary>
+        /// Full paths of each family to migrate
+        /// </summary>
+        private List<String> familiesToMigrate;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -72,20 +75,37 @@ namespace DougKlassen.Revit.Migration.Commands
             openOpts.Audit = true;
             familiesToMigrate = GetEligibleFamiles(sourceDirectory);
             log.AppendLine("{0} elligible families found", familiesToMigrate.Count());
-            foreach (var family in familiesToMigrate)
+            foreach (var sourceFilePath in familiesToMigrate)
             {
                 try
                 {
-                    ModelPath modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(family.SourceFileCompletePath);
-                    log.AppendLine(" Processing {0}", ModelPathUtils.ConvertModelPathToUserVisiblePath(modelPath));
-                    Document dbDoc = app.OpenDocumentFile(modelPath, openOpts);
-                    dbDoc.Close(false);
+                    Document dbDoc;
+                    ModelPath sourceModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(sourceFilePath);
+                    log.AppendLine("\n\n Processing {0}", sourceFilePath);
+                    dbDoc = app.OpenDocumentFile(sourceModelPath, openOpts);
+                    var destFilePath = GetDestinationFilePath(sourceFilePath, destinationDirectory);
+                    log.AppendLine(" Destination File Path: {0}", destFilePath);
+                    ModelPath destinationModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(destFilePath);
+                    try
+                    {
+                        var saveOpts = new SaveAsOptions();
+                        saveOpts.Compact = true;
+                        saveOpts.MaximumBackups = 2;
+                        saveOpts.OverwriteExistingFile = true;
+                        //dbDoc.SaveAs(destinationModelPath, saveOpts);
+                        dbDoc.Close(false);
+                        log.AppendLine(" Saved migrated family: {0}", destFilePath);
+                    }
+                    catch (Exception e)
+                    {
+                        log.AppendLine(" ! Could not save {0} to {1}", sourceFilePath, destinationModelPath);
+                        log.LogException(e);
+                    }
                 }
                 catch (Exception e)
                 {
+                    log.AppendLine(" ! Could not open {0}", sourceFilePath);
                     log.LogException(e);
-                    File.WriteAllText(logFilePath, log.Text);
-                    return Result.Failed;
                 }
             }
 
@@ -98,9 +118,9 @@ namespace DougKlassen.Revit.Migration.Commands
         /// </summary>
         /// <param name="sourceDirectory">The directory to search</param>
         /// <returns>A List of families found in the directory</returns>
-        private List<RevitFamily> GetEligibleFamiles(String sourceDirectory)
+        private List<String> GetEligibleFamiles(String sourceDirectory)
         {
-            List<RevitFamily> selectedFamiles = new List<RevitFamily>();
+            var selectedFamiles = new List<String>();
             Regex exclusionRegex = new Regex(@"\.[\d]{2,4}\.rfa", RegexOptions.IgnoreCase);            
 
             List<String> filePaths = Directory.EnumerateFiles(sourceDirectory, "*.rfa", SearchOption.AllDirectories).ToList();
@@ -109,11 +129,47 @@ namespace DougKlassen.Revit.Migration.Commands
                 String fileName = Path.GetFileName(path);
                 if (!exclusionRegex.IsMatch(fileName))
                 {
-                    selectedFamiles.Add(new RevitFamily(path));
+                    selectedFamiles.Add(path);
                 }
             }
 
             return selectedFamiles;
+        }
+
+        /// <summary>
+        /// Get the complete destination file path
+        /// </summary>
+        /// <param name="sourceFilePath">The path of the source file</param>
+        /// <param name="destinationDirectoryPath">The path of the destination directory, with or without a trailing \</param>
+        /// <returns>The complete path of the destination file</returns>
+        private String GetDestinationFilePath(String sourceFilePath, String destinationDirectoryPath)
+        {            
+            if (!destinationDirectoryPath.EndsWith(@"\"))
+            {
+                destinationDirectoryPath += @"\";
+            }
+
+            Regex xlFileNameRegEx = new Regex(@"^\(XL\) ");
+            Regex underscoreRegEx = new Regex(@"_");
+            Regex dashSpaceRegex = new Regex(@" - ");
+
+            String oldFileName = Path.GetFileName(sourceFilePath);
+            String newFileName = oldFileName;
+            newFileName = xlFileNameRegEx.Replace(newFileName, "b.");
+            newFileName = underscoreRegEx.Replace(newFileName, "-");
+            newFileName = dashSpaceRegex.Replace(newFileName, "-");
+
+            String destinationFilePath = String.Empty;
+            destinationFilePath = destinationDirectoryPath + newFileName;
+
+            if (!newFileName.Equals(oldFileName))
+            {
+                log.AppendLine("Rename: {0} --> {1}",
+                    oldFileName,
+                    newFileName);
+            }
+
+            return destinationFilePath;
         }
     }
 

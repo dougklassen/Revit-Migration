@@ -6,6 +6,8 @@ using System.Reflection;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
+using DougKlassen.Revit.Migration.Commands;
+
 namespace DougKlassen.Revit.Migration
 {
     public static class FileLocations
@@ -44,7 +46,10 @@ namespace DougKlassen.Revit.Migration.StartUp
                 "DougKlassen.Revit.Migration.Commands.MigrateFamiliesCommandAvailability";
 
             RibbonPanel newAddInRibbonPanel = application.CreateRibbonPanel("Migration");
-            newAddInRibbonPanel.AddItem(migrateFamiliesCommandPushButtonData);            
+            newAddInRibbonPanel.AddItem(migrateFamiliesCommandPushButtonData);
+
+            //add the error handler
+            application.ControlledApplication.FailuresProcessing += MigrateFamiliesErrorHandler.MigrateFamiliesFailureHandler;
 
             return Result.Succeeded;
         }
