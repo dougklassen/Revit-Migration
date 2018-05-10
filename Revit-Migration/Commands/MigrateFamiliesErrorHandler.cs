@@ -31,6 +31,7 @@ namespace DougKlassen.Revit.Migration.Commands
                     args.SetProcessingResult(FailureProcessingResult.Continue);
                     fa.DeleteWarning(fma);
                 }
+                //note: errors are not being generated on file open
                 else if (fma.GetSeverity() == FailureSeverity.Error)
                 {
                     log.AppendLine("!!error");

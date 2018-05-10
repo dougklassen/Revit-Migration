@@ -48,9 +48,6 @@ namespace DougKlassen.Revit.Migration.StartUp
             RibbonPanel newAddInRibbonPanel = application.CreateRibbonPanel("Migration");
             newAddInRibbonPanel.AddItem(migrateFamiliesCommandPushButtonData);
 
-            //add the error handler
-            application.ControlledApplication.FailuresProcessing += MigrateFamiliesErrorHandler.MigrateFamiliesFailureHandler;
-
             return Result.Succeeded;
         }
 

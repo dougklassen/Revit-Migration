@@ -80,9 +80,10 @@ namespace DougKlassen.Revit.Migration.Models
         /// <param name="exception">The exception to be recorded</param>
         public void LogException(Exception exception)
         {
-            AppendLine("\n!! {0} {1}", DateTime.Now, exception.GetType());
-            AppendLine(" {0}", exception.Message);
-            AppendLine(" {0}", exception.StackTrace);
+            AppendLine("!!exception");
+            AppendLine("--{0} {1}", DateTime.Now, exception.GetType());
+            AppendLine("--{0}", exception.Message);
+            AppendLine("--{0}", exception.StackTrace);
         }
     }
 }

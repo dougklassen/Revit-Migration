@@ -26,7 +26,12 @@ namespace DougKlassen.Revit.Migration.Commands
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            log.AppendLine("Family Migration: {0}", DateTime.Now.ToLongDateString());
+            //add the error handler
+            UIApplication uiApp = commandData.Application;
+            Autodesk.Revit.ApplicationServices.Application dbApp = uiApp.Application;
+            dbApp.FailuresProcessing += MigrateFamiliesErrorHandler.MigrateFamiliesFailureHandler;
+
+            log.AppendLine("**Family Migration: {0}", DateTime.Now.ToLongDateString());
 
             //Prompt the user for a directory containing files to be migrated
             DialogResult result;
@@ -47,7 +52,7 @@ namespace DougKlassen.Revit.Migration.Commands
                 default:
                     return Result.Failed;
             }
-            log.AppendLine("Source directory selected: {0}", sourceDirectory);
+            log.AppendLine("--Source directory selected: {0}", sourceDirectory);
 
             //Prompt the user for a directory to send migrated files to
             FolderBrowserDialog destinationDirectoryDialog = new FolderBrowserDialog();
@@ -67,24 +72,25 @@ namespace DougKlassen.Revit.Migration.Commands
                 default:
                     return Result.Failed;
             }
-            log.AppendLine("Output directory selected: {0}", destinationDirectory);
+            log.AppendLine("--Output directory selected: {0}", destinationDirectory);
 
             //Open each family and save in the current version of revit
             var app = commandData.Application.Application;
             var openOpts = new OpenOptions();
             openOpts.Audit = true;
             familiesToMigrate = GetEligibleFamiles(sourceDirectory);
-            log.AppendLine("{0} elligible families found", familiesToMigrate.Count());
+            log.AppendLine("--{0} elligible families found", familiesToMigrate.Count());
             foreach (var sourceFilePath in familiesToMigrate)
             {
                 try
                 {
                     Document dbDoc;
                     ModelPath sourceModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(sourceFilePath);
-                    log.AppendLine("\n\n Processing {0}", sourceFilePath);
+                    log.AppendLine("+++++");
+                    log.AppendLine("**Processing {0}", sourceFilePath);
                     dbDoc = app.OpenDocumentFile(sourceModelPath, openOpts);
                     var destFilePath = GetDestinationFilePath(sourceFilePath, destinationDirectory);
-                    log.AppendLine(" Destination File Path: {0}", destFilePath);
+                    //TODO: add full relative subdirectory to destination path
                     ModelPath destinationModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(destFilePath);
                     try
                     {
@@ -92,23 +98,25 @@ namespace DougKlassen.Revit.Migration.Commands
                         saveOpts.Compact = true;
                         saveOpts.MaximumBackups = 2;
                         saveOpts.OverwriteExistingFile = true;
-                        //dbDoc.SaveAs(destinationModelPath, saveOpts);
+                        dbDoc.SaveAs(destinationModelPath, saveOpts);
                         dbDoc.Close(false);
-                        log.AppendLine(" Saved migrated family: {0}", destFilePath);
+                        log.AppendLine("--Saved migrated family: {0}", destFilePath);
                     }
                     catch (Exception e)
                     {
-                        log.AppendLine(" ! Could not save {0} to {1}", sourceFilePath, destinationModelPath);
+                        log.AppendLine("!!Could not save {0} to {1}", sourceFilePath, destFilePath);
                         log.LogException(e);
                     }
                 }
                 catch (Exception e)
                 {
-                    log.AppendLine(" ! Could not open {0}", sourceFilePath);
+                    log.AppendLine("!!Could not open {0}", sourceFilePath);
                     log.LogException(e);
                 }
             }
 
+            //remove the error handler and write the log
+            dbApp.FailuresProcessing -= MigrateFamiliesErrorHandler.MigrateFamiliesFailureHandler;
             File.WriteAllText(logFilePath, log.Text);
             return Result.Succeeded;
         }
@@ -164,7 +172,7 @@ namespace DougKlassen.Revit.Migration.Commands
 
             if (!newFileName.Equals(oldFileName))
             {
-                log.AppendLine("Rename: {0} --> {1}",
+                log.AppendLine("!!Rename: {0} --> {1}",
                     oldFileName,
                     newFileName);
             }
