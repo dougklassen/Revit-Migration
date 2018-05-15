@@ -80,17 +80,16 @@ namespace DougKlassen.Revit.Migration.Commands
             openOpts.Audit = true;
             familiesToMigrate = GetEligibleFamiles(sourceDirectory);
             log.AppendLine("--{0} elligible families found", familiesToMigrate.Count());
-            foreach (var sourceFilePath in familiesToMigrate)
+            foreach (var sourceFileSubPath in familiesToMigrate)
             {
                 try
                 {
                     Document dbDoc;
-                    ModelPath sourceModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(sourceFilePath);
+                    ModelPath sourceModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(sourceDirectory + '\\' +  sourceFileSubPath);
                     log.AppendLine("+++++");
-                    log.AppendLine("**Processing {0}", sourceFilePath);
+                    log.AppendLine("**Processing {0}", sourceFileSubPath);
                     dbDoc = app.OpenDocumentFile(sourceModelPath, openOpts);
-                    var destFilePath = GetDestinationFilePath(sourceFilePath, destinationDirectory);
-                    //TODO: add full relative subdirectory to destination path
+                    var destFilePath = GetDestinationFilePath(sourceFileSubPath, destinationDirectory);
                     ModelPath destinationModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(destFilePath);
                     try
                     {
@@ -98,19 +97,23 @@ namespace DougKlassen.Revit.Migration.Commands
                         saveOpts.Compact = true;
                         saveOpts.MaximumBackups = 2;
                         saveOpts.OverwriteExistingFile = true;
+                        if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
+                        }
                         dbDoc.SaveAs(destinationModelPath, saveOpts);
                         dbDoc.Close(false);
                         log.AppendLine("--Saved migrated family: {0}", destFilePath);
                     }
                     catch (Exception e)
                     {
-                        log.AppendLine("!!Could not save {0} to {1}", sourceFilePath, destFilePath);
+                        log.AppendLine("!!Could not save {0} to {1}", sourceFileSubPath, destFilePath);
                         log.LogException(e);
                     }
                 }
                 catch (Exception e)
                 {
-                    log.AppendLine("!!Could not open {0}", sourceFilePath);
+                    log.AppendLine("!!Could not open {0}", sourceFileSubPath);
                     log.LogException(e);
                 }
             }
@@ -122,10 +125,10 @@ namespace DougKlassen.Revit.Migration.Commands
         }
 
         /// <summary>
-        /// Return all familes elligible for upgrade in a specified directory. The directory is searched recursively
+        /// Find all families in the directory elligible to be upgraded. The directory is searched recursively
         /// </summary>
         /// <param name="sourceDirectory">The directory to search</param>
-        /// <returns>A List of families found in the directory</returns>
+        /// <returns>A List of family file paths found in the directory. The path is relative to the source directory and does not begin with a backslash</returns>
         private List<String> GetEligibleFamiles(String sourceDirectory)
         {
             var selectedFamiles = new List<String>();
@@ -135,9 +138,12 @@ namespace DougKlassen.Revit.Migration.Commands
             foreach (var path in filePaths)
             {
                 String fileName = Path.GetFileName(path);
+                var subPath = path.Remove(0, sourceDirectory.Length);
+                subPath = subPath.TrimStart('\\');
+
                 if (!exclusionRegex.IsMatch(fileName))
                 {
-                    selectedFamiles.Add(path);
+                    selectedFamiles.Add(subPath);
                 }
             }
 
@@ -147,10 +153,10 @@ namespace DougKlassen.Revit.Migration.Commands
         /// <summary>
         /// Get the complete destination file path
         /// </summary>
-        /// <param name="sourceFilePath">The path of the source file</param>
+        /// <param name="sourceFileSubPath">The path of the source file</param>
         /// <param name="destinationDirectoryPath">The path of the destination directory, with or without a trailing \</param>
         /// <returns>The complete path of the destination file</returns>
-        private String GetDestinationFilePath(String sourceFilePath, String destinationDirectoryPath)
+        private String GetDestinationFilePath(String sourceFileSubPath, String destinationDirectoryPath)
         {            
             if (!destinationDirectoryPath.EndsWith(@"\"))
             {
@@ -161,14 +167,17 @@ namespace DougKlassen.Revit.Migration.Commands
             Regex underscoreRegEx = new Regex(@"_");
             Regex dashSpaceRegex = new Regex(@" - ");
 
-            String oldFileName = Path.GetFileName(sourceFilePath);
+            //update the filename and generate a destination subpath
+            String oldFileName = Path.GetFileName(sourceFileSubPath);
             String newFileName = oldFileName;
             newFileName = xlFileNameRegEx.Replace(newFileName, "b.");
             newFileName = underscoreRegEx.Replace(newFileName, "-");
             newFileName = dashSpaceRegex.Replace(newFileName, "-");
+            var fileNameStartIndex = sourceFileSubPath.Length - oldFileName.Length;
+            String newFileSubPath = sourceFileSubPath.Remove(fileNameStartIndex) + newFileName;
 
             String destinationFilePath = String.Empty;
-            destinationFilePath = destinationDirectoryPath + newFileName;
+            destinationFilePath = destinationDirectoryPath + newFileSubPath;
 
             if (!newFileName.Equals(oldFileName))
             {
